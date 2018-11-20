@@ -2,10 +2,12 @@ import { Router, Request, Response } from 'express';
 import multer  from 'multer';
 import crypto from 'crypto';
 import fs from 'fs';
+import path from 'path'
 import axios from 'axios';
 import { AmazonService } from '../utils/awsUploadS3';
 import { encoderApiKey, s3BucketName } from '../config';
 import { IZencodeReponse } from '../declarations';
+import { FirebaseDatabase } from '../utils/firebase';
 
 const amazonService = new AmazonService();
 
@@ -15,8 +17,9 @@ const storage = multer.diskStorage({
   destination: './temp/',
   filename: function (req, file, cb) {
     crypto.pseudoRandomBytes(16, function (err, raw) {
+      const newVideoKey = FirebaseDatabase().ref().child('videos').push().key;
       if (err) return cb(err, file.originalname)
-      cb(null, file.originalname)
+      cb(null, newVideoKey + path.extname(file.originalname))
     })
   }
 })
