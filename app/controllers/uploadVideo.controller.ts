@@ -7,7 +7,7 @@ import axios from 'axios';
 import { AmazonService } from '../utils/awsUploadS3';
 import { encoderApiKey, s3BucketName } from '../config';
 import { IZencodeReponse } from '../declarations';
-import { FirebaseDatabase } from '../utils/firebase';
+import { FirebaseDatabase, firebaseLog, getNextStep } from '../utils/firebase';
 
 const amazonService = new AmazonService();
 
@@ -29,6 +29,9 @@ const upload = multer({ storage: storage })
 router.post('/', upload.single('video'), async (req: Request, res: Response) => {
   const bucketPath = `s3://${s3BucketName}`;
   const [videoId, rawFormat] = req.file.filename.split('.');
+  
+  const stepLog = firebaseLog(videoId);
+  stepLog({job: 'client-upload', success: true, nextJob: getNextStep('client-upload')});
 
   /***** STATUS: UPLOADING TO S3 ****/
 
@@ -39,6 +42,8 @@ router.post('/', upload.single('video'), async (req: Request, res: Response) => 
   FirebaseDatabase().ref().update(updates);
 
   amazonService.sendS3(req.file.path).then(() => {
+    stepLog({job: 's3-raw-upload', success: true, nextJob: getNextStep('s3-raw-upload')});
+    
     fs.unlink(req.file.path, (err) => {
       if (err) throw err;
     });
@@ -80,6 +85,7 @@ router.post('/', upload.single('video'), async (req: Request, res: Response) => 
         "Content-Type": "application/json"
       }
     }).then((zencodeResponse: IZencodeReponse) => {
+      stepLog({job: 'encode', success: true, nextJob: getNextStep('encode')});
 
       /***** STATUS: DONE ****/
       let updates: any = {};
@@ -115,10 +121,12 @@ router.post('/', upload.single('video'), async (req: Request, res: Response) => 
         res.send(firebaserError)
       })
     }).catch((zencoderError) => {
+      stepLog({job: 'encode', success: true, nextJob: getNextStep('encode')});
       res.status(500);
       res.send(zencoderError)
     })
   }).catch((s3Error) => {
+    stepLog({job: 's3-raw-upload', success: false, error: s3Error});
     res.status(500);
     res.send(s3Error)
   })
