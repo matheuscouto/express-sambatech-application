@@ -1,6 +1,7 @@
 
 import * as AWS from 'aws-sdk';
 import { IAmazonFile } from '../declarations';
+import { s3BucketName } from '../config'
 
 export class AmazonService {
   private s3: any;
@@ -19,6 +20,7 @@ export class AmazonService {
     const uploadParams = {
       Body: fileStream,
       Key: path.basename(file),
+      Bucket: s3BucketName,
       ACL: 'public-read',
     };
     
