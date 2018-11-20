@@ -1,13 +1,6 @@
 
 import * as AWS from 'aws-sdk';
-
-export interface AmazonFile {
-  ETag: string;
-  Location: string;
-  key: string;
-  Key: string;
-  Bucket: string;
-}
+import { IAmazonFile } from '../declarations';
 
 export class AmazonService {
   private s3: any;
@@ -16,7 +9,7 @@ export class AmazonService {
     this.s3 = new AWS.S3({ apiVersion: '2006-03-01' });
   }
 
-  async sendS3(file: string): Promise<AmazonFile> {
+  async sendS3(file: string): Promise<IAmazonFile> {
 
     const fs = require('fs');
     const fileStream = fs.createReadStream(file);
@@ -29,7 +22,7 @@ export class AmazonService {
       ACL: 'public-read',
     };
     
-    return new Promise<AmazonFile>((resolve, reject) => {
+    return new Promise<IAmazonFile>((resolve, reject) => {
       this.s3.upload(uploadParams, (err: any, data: any) => {
         if (err) return reject(err);
         return resolve(data);
