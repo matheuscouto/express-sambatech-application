@@ -122,11 +122,23 @@ router.post('/', upload.single('video'), async (req: Request, res: Response) => 
       })
     }).catch((zencoderError) => {
       stepLog({job: 'encode', success: true, nextJob: getNextStep('encode')});
+
+      let updates: any = {};
+      updates[`/videos/${videoId}/failedReason`] = zencoderError;
+      updates[`/videos/${videoId}/status`] = 'failed';
+      FirebaseDatabase().ref().update(updates)
+
       res.status(500);
       res.send(zencoderError)
     })
   }).catch((s3Error) => {
     stepLog({job: 's3-raw-upload', success: false, error: s3Error});
+
+    let updates: any = {};
+    updates[`/videos/${videoId}/failedReason`] = s3Error;
+    updates[`/videos/${videoId}/status`] = 'failed';
+    FirebaseDatabase().ref().update(updates)
+
     res.status(500);
     res.send(s3Error)
   })
