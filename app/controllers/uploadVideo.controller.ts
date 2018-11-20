@@ -93,7 +93,7 @@ router.post('/', upload.single('video'), async (req: Request, res: Response) => 
       updates[`/videos/${videoId}/creationTime`] = Date.now();
       updates[`/videos/${videoId}/creationTimeOrder`] = Date.now() * -1;
       updates[`/videos/${videoId}/status`] = 'done';
-      
+
       FirebaseDatabase().ref('/videosCount').once('value').then((videosCountSnapshot) => {
         if(!videosCountSnapshot.val()) {
           updates[`/videosCount`] = 1;
@@ -103,7 +103,7 @@ router.post('/', upload.single('video'), async (req: Request, res: Response) => 
         FirebaseDatabase().ref().update(updates).then(() => {
 
           /***** SAVED IN FIREBASE ****/
-          res.sendStatus(200);
+          res.status(200);
           res.send('Success');
 
         }).catch((firebaserError) => {
