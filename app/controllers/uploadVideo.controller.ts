@@ -91,12 +91,25 @@ router.post('/', upload.single('video'), async (req: Request, res: Response) => 
         `https://${s3BucketName}.s3.amazonaws.com/videos/${videoId}/thumbnails/frame_0002.png`,
       ];
       updates[`/videos/${videoId}/creationTime`] = Date.now();
+      updates[`/videos/${videoId}/creationTimeOrder`] = Date.now() * -1;
       updates[`/videos/${videoId}/status`] = 'done';
-      FirebaseDatabase().ref().update(updates).then(() => {
+      
+      FirebaseDatabase().ref('/videosCount').once('value').then((videosCountSnapshot) => {
+        if(!videosCountSnapshot.val()) {
+          updates[`/videosCount`] = 1;
+        } else {
+          updates[`/videosCount`] = videosCountSnapshot.val() + 1;
+        }
+        FirebaseDatabase().ref().update(updates).then(() => {
 
-        /***** SAVED IN FIREBASE ****/
-        res.sendStatus(200);
-        res.send('Success');
+          /***** SAVED IN FIREBASE ****/
+          res.sendStatus(200);
+          res.send('Success');
+
+        }).catch((firebaserError) => {
+          res.status(500);
+          res.send(firebaserError)
+        })
       }).catch((firebaserError) => {
         res.status(500);
         res.send(firebaserError)
