@@ -12,3 +12,7 @@ export interface IZencodeReponse {
     outputs: Array<{ id: number, label: any, url: string }>
   }
 }
+
+export type IVideoSteps = 'client-upload' | 's3-raw-upload' | 'encode';
+
+export interface IFirebaseLogProps {job: IVideoSteps, success: boolean, nextJob?: string, error?: string}
