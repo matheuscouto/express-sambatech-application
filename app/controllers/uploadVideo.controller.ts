@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import multer  from 'multer';
 import crypto from 'crypto';
+import fs from 'fs';
 import { AmazonService } from '../utils/awsUploadS3';
 
 const amazonService = new AmazonService();
@@ -21,6 +22,9 @@ const upload = multer({ storage: storage })
 
 router.post('/', upload.single('video'), async (req: Request, res: Response) => {
   amazonService.sendS3(req.file.path).then((awsFile) => {
+    fs.unlink(req.file.path, (err) => {
+      if (err) throw err;
+    });
     res.status(200);
     res.send(`Aws file payload: ${JSON.stringify(awsFile)}`);
   }).catch((s3Error) => {
