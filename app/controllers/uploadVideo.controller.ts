@@ -106,16 +106,19 @@ router.post('/', upload.single('video'), async (req: Request, res: Response) => 
         } else {
           updates[`/videosCount`] = videosCountSnapshot.val() + 1;
         }
-        FirebaseDatabase().ref().update(updates).then(() => {
 
-          /***** SAVED IN FIREBASE ****/
-          res.status(200);
-          res.send('Success');
-
-        }).catch((firebaserError) => {
-          res.status(500);
-          res.send(firebaserError)
-        })
+        setTimeout(() =>
+          FirebaseDatabase().ref().update(updates).then(() => {
+  
+            /***** SAVED IN FIREBASE ****/
+            res.status(200);
+            res.send('Success');
+  
+          }).catch((firebaserError) => {
+            res.status(500);
+            res.send(firebaserError)
+          }), 30000)
+          
       }).catch((firebaserError) => {
         res.status(500);
         res.send(firebaserError)
